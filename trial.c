@@ -119,6 +119,7 @@ int sum_all_children(int pipes_arrays[][2], int number_of_processes)
 void create_children(int pipes_arrays[][2], int array_from_file[], int size_of_array, int number_of_processes)
 {
 	int i;
+	int pid[number_of_processes];
 	for (i = 0; i < number_of_processes; i++)  
 	{
 		if ((pid[i] = fork()) < 0) 
@@ -130,9 +131,11 @@ void create_children(int pipes_arrays[][2], int array_from_file[], int size_of_a
 	   else if (pid[i] == 0) 
 	   {
 		   //Child Process
-		   int sum = sum_from_pipes_child(pipes_arrays[i][0])
+		   int sum = sum_from_pipes_child(pipes_arrays[i][0]);
 		   //write(send_pipe, array_from_file[i], sizeof(array_from_file[i]));
 		   write(pipes_arrays[i][1], sum, sizeof(sum));
+		   
+		   printf("Child %i, will be exiting.\n", pid[i]);
 		   exit(1);
 	   }
 	   else
@@ -146,6 +149,28 @@ void create_children(int pipes_arrays[][2], int array_from_file[], int size_of_a
 	determine_appropriate_offsets(pipes_arrays, array_from_file, size_of_array, number_of_processes);
 	int sum = sum_all_children(pipes_arrays, number_of_processes);
 	printf("The sum of all the numbers is: %d\n", sum);
+}
+
+void close_pipes(int pipes_array[][2], int number_of_processes)
+{
+	int i = 0;
+	for(i; i<number_of_processes; i++)
+	{
+		close(pipes_array[i][0]);
+		close(pipes_array[i][1]);
+	}
+}
+
+void create_pipes(int pipes_array[][2], int number_of_processes)
+{
+	int i=0;
+	for (i; i<number_of_processes; i++)
+	{
+		int fd[2];
+		pipe(fd);
+		pipes_array[i][0]=fd[0]; //Hopefully this works?
+		pipes_array[i][1]=fd[1]; //Hopefully this works?
+	}
 }
 
 int main(int argc, char *argv[])
